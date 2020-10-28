@@ -1,8 +1,8 @@
 import { StyleSheet } from 'react-native';
 
 export const colors = {
-  primary: '#303F9F', // MD Amber 500
-  primaryDark: '#7986CB', // MD Brown 300
+  primary: '#7986CB', // MD Amber 500
+  primaryDark: '#303F9F', // MD Brown 300
   primaryLight: '#E8EAF6', // MD Amber 200
   outline: '#BDBDBD' // MD Gray 400
 }
@@ -21,10 +21,8 @@ export const loginStyles = StyleSheet.create({
       alignItems: 'center',
       justifyContent: 'flex-end',
       width: '100%',
-      //backgroundColor: 'tan'
     },
       logoImage: {
-        //flex: 0.1,
         alignItems: 'center',
         justifyContent: 'center',
         width: '50%',
@@ -49,21 +47,36 @@ export const loginStyles = StyleSheet.create({
           justifyContent: 'flex-end',
           paddingRight: 5,
           textAlign: 'right',
-          fontSize: 18
+          fontSize: 10
         },
         inputText: {
           flex: 0.5,
           borderColor: colors.outline,
           paddingLeft: 5,
           borderBottomWidth: 1,
-          fontSize: 18
-
+          fontSize: 18,
         },
       bottomView: {
         flex: 0.3,
+        flexDirection: 'row',
         width: '100%',
-        //backgroundColor: 'tan'
-      }
+        justifyContent: 'center',
+        alignItems: 'flex-start'
+      },
+        buttonContainer: {
+          justifyContent: 'center',
+          alignItems: 'center',
+          borderWidth: 1,
+          borderColor: colors.outline,
+          borderRadius: 6,
+          backgroundColor: colors.primary,
+          width: 100,
+          height: 50
+        },
+          buttonText: {
+            textAlign: 'center',
+            color: 'white'
+          }
 });
 
 export const peopleStyles = StyleSheet.create({
@@ -106,22 +119,6 @@ export const chatStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-start',
   },
-    // headerContainer: {
-    //   flex: 0.1,
-    //   justifyContent: 'center',
-    //   alignItems: 'center',
-    //   width: '100%',
-    //   backgroundColor: 'pink'
-    // },  
-    //   headerText: {
-    //     fontSize: 24
-    //   },
-    // kavBody: {
-    //   flex: 0.9,
-    //   width: '100%',
-    //   justifyContent: 'flex-start',
-    //   alignItems: 'stretch'
-    // },  
     messageListContainer: {
       flex: 0.9,
       justifyContent: 'center',
