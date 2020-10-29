@@ -4,25 +4,25 @@ import { TextInput, Text, View,
   from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { peopleStyles, colors } from './Styles';
+import { getDataModel } from './DataModel';
 
 export class PeopleScreen extends React.Component {
   constructor(props) {
     super(props);
+
+    this.dataModel = getDataModel();
+    this.currentUser = this.props.route.params.currentUser;
+    
+    let allUsers = this.dataModel.getUsers();
+    let otherUsers = [];
+    for (let user of allUsers) {
+      if (user.email !== this.currentUser.email) {
+        otherUsers.push(user);
+      }
+    }
+
     this.state = {
-      people: [
-        { 
-          displayName: 'Mark Newman',
-          key: 'mwnewman@umich.edu'
-        },
-        {
-          displayName: 'Pants McKinley',
-          key: 'pants@mckinley.com'
-        },
-        {
-          displayName: 'Jane Doe',
-          key: 'janedoe@janedoe.org'
-        }
-      ]
+      people: otherUsers
     }
   }
 
