@@ -4,52 +4,41 @@ import { TextInput, Text, View,
   from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { chatStyles, colors } from './Styles';
+import { getDataModel } from './DataModel';
 
 export class ChatScreen extends React.Component {
   constructor(props) {
     super(props);
 
-    this.self = {
-      displayName: 'Mark',
-      email: 'mwnewman@umich.edu'
-    };
-    this.other = {
-      displayName: 'Jane',
-      email: 'jane@doe.org'
-    }
+    this.self = this.props.route.params.currentUser;
+    this.other = this.props.route.params.otherUser;
+    this.dataModel = getDataModel();
 
     this.state = {
-      messages: [
-        {
-          text: "Hello",
-          timestamp: '' + Date.now(),
-          author: this.self,
-          key: 'msg1'
-        },
-        {
-          text: "Goodbye",
-          timestamp: '' + (Date.now() + 1),
-          author: this.other,
-          key: 'msg2'
-        }
-      ],
+      messages: [],
       inputText: ''
     }
   }
 
   componentDidMount = () => {
     this.props.navigation.setOptions({title: this.other.displayName});
+    this.loadChat();
+  }
+
+  loadChat = async() => {
+    this.chat = await this.dataModel.getOrCreateChat(this.self, this.other);
+    console.log(this.chat);
   }
 
   onMessageSend = () => {
     let now = Date.now();
-    let message = {
+    let messageData = {
       text: this.state.inputText,
-      timestamp: '' + Date.now(),
+      timestamp: Date.now(),
       author: this.self,
-      key: this.self.email + '_' + now
     }
-    this.state.messages.push(message);
+    //  await this.dataModel.addChatMessage(this.chat.key, messageData);
+
     this.setState({
       messages: this.state.messages,
       inputText: ''

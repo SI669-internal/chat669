@@ -42,7 +42,10 @@ export class PeopleScreen extends React.Component {
                 <TouchableOpacity 
                   style={peopleStyles.personRow}
                   onPress={()=> {
-                    this.props.navigation.navigate('Chat');
+                    this.props.navigation.navigate('Chat', {
+                      currentUser: this.currentUser,
+                      otherUser: item
+                    });
                   }}
                 >
                   <Text style={peopleStyles.personText}>{item.displayName}</Text>
