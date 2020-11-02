@@ -22,25 +22,25 @@ export class ChatScreen extends React.Component {
 
   componentDidMount = () => {
     this.props.navigation.setOptions({title: this.other.displayName});
-    this.loadChat();
+    this.loadMessages();
   }
 
-  loadChat = async() => {
-    this.chat = await this.dataModel.getOrCreateChat(this.self, this.other);
-    console.log(this.chat);
+  loadMessages = async() => {
+    this.chat = await this.dataModel
+      .getOrCreateChat(this.self, this.other);
+    this.setState({messages: this.chat.messages});
   }
 
-  onMessageSend = () => {
-    let now = Date.now();
+  onMessageSend = async () => {
     let messageData = {
       text: this.state.inputText,
       timestamp: Date.now(),
       author: this.self,
     }
-    //  await this.dataModel.addChatMessage(this.chat.key, messageData);
-
+    await this.dataModel.addChatMessage(this.chat.key, messageData);
+    
     this.setState({
-      messages: this.state.messages,
+      messages: this.chat.messages,
       inputText: ''
     });
   }

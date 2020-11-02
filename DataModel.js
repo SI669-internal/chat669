@@ -17,6 +17,7 @@ class DataModel {
   asyncInit = async () => {
     this.loadUsers();
     this.loadChats();
+    //this.subscribeToChats();
   }
 
   loadUsers = async () => {
@@ -63,10 +64,8 @@ class DataModel {
 
   loadChats = async () => {
     let querySnap = await this.chatsRef.get();
-    console.log('got querySnap', querySnap);
-    querySnap.forEach(qDocSnap => {
+    querySnap.forEach(async qDocSnap => {
       let data = qDocSnap.data();
-      console.log('got dod data', data);
       let thisChat = {
         key: qDocSnap.id,
         participants: [],
@@ -76,12 +75,17 @@ class DataModel {
         let user = this.getUserForID(userID);
         thisChat.participants.push(user);
       }
+
+      let messageRef = qDocSnap.ref.collection("messages");
+      let messagesQSnap = await messageRef.get();
+      messagesQSnap.forEach(qDocSnap => {
+        let messageData = qDocSnap.data();
+        messageData.author = this.getUserForID(messageData.author);
+        messageData.key = qDocSnap.id;
+        thisChat.messages.push(messageData);
+      });
       this.chats.push(thisChat);
-      // deal with messages later
     });
-    console.log('***** LOADED CHATS *****');
-    console.log(this.chats);
-    console.log('*****');
   }
 
   getOrCreateChat = async (user1, user2) => {
@@ -108,7 +112,8 @@ class DataModel {
     // create a local chat object with full-fledged user objects (not just keys)
     let newChat = {
       participants: [user1, user2],
-      key: newChatDocRef.id // use the Firebase ID
+      key: newChatDocRef.id, // use the Firebase ID
+      messages: []
     }
     // add it to the data model's chats, then return it
     this.chats.push(newChat);
@@ -116,8 +121,8 @@ class DataModel {
   }
 
   getChatForID = (id) => {
-    for (let chat of chats) {
-      if (chat.id === id) {
+    for (let chat of this.chats) {
+      if (chat.key === id) {
         return chat;
       }
     }
@@ -130,14 +135,23 @@ class DataModel {
   addChatMessage = async (chatID, message) => {
     // get a ref to this chat's messages collection. OK if it doesn't exist
     let messagesRef = this.chatsRef.doc(chatID).collection('messages');
+
+    // change author object to just ID for pushing to Firebase, 
+    let fbMessageObject = {
+      text: message.text,
+      timestamp: message.timestamp,
+      author: message.author.key,
+    }
+
     // add this message to the collection. It'll exist now!
-    let messageDocRef = await messagesRef.add(message);
+    let messageDocRef = await messagesRef.add(fbMessageObject);
 
     // update the local copy of the message with the correct key
     message.key = messageDocRef.id;
 
     // get the local copy of the chat
     let theChat = this.getChatForID(chatID);
+    console.log('in addChatMessge, theChat is', theChat);
     // if this is the first message, create the messages array
     if (!theChat.messages) {
       theChat.messages = [];
@@ -146,7 +160,6 @@ class DataModel {
     theChat.messages.push(message);
     return message;
   }
-
 }
 
 
