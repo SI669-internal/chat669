@@ -11,12 +11,13 @@ class DataModel {
     this.chatsRef = firebase.firestore().collection('chats');
     this.users = [];
     this.chats = [];
+    this.chatListeners = [];
     this.asyncInit();
   }
 
   asyncInit = async () => {
-    this.loadUsers();
-    this.loadChats();
+    await this.loadUsers();
+    await this.loadChats();
     //this.subscribeToChats();
   }
 
@@ -64,6 +65,8 @@ class DataModel {
 
   loadChats = async () => {
     let querySnap = await this.chatsRef.get();
+    console.log(querySnap.docs.length);
+
     querySnap.forEach(async qDocSnap => {
       let data = qDocSnap.data();
       let thisChat = {
@@ -76,15 +79,57 @@ class DataModel {
         thisChat.participants.push(user);
       }
 
-      let messageRef = qDocSnap.ref.collection("messages");
-      let messagesQSnap = await messageRef.get();
-      messagesQSnap.forEach(qDocSnap => {
-        let messageData = qDocSnap.data();
-        messageData.author = this.getUserForID(messageData.author);
-        messageData.key = qDocSnap.id;
-        thisChat.messages.push(messageData);
-      });
+      // let messageRef = qDocSnap.ref.collection("messages");
+      // let messagesQSnap = await messageRef.get();
+      // messagesQSnap.forEach(qDocSnap => {
+      //   let messageData = qDocSnap.data();
+      //   messageData.author = this.getUserForID(messageData.author);
+      //   messageData.key = qDocSnap.id;
+      //   thisChat.messages.push(messageData);
+      // });
       this.chats.push(thisChat);
+    });
+    console.log("loaded chats: ", this.chats);
+  }  
+
+  subscribeToChat = (chat, notifyOnUpdate) => {
+    this.chatSnapshotUnsub = this.chatsRef.doc(chat.key)
+      .collection('messages')
+      .orderBy('timestamp')
+      .onSnapshot((querySnap) => {
+        chat.messages = [];
+        querySnap.forEach((qDocSnap) => {
+          let messageObj = qDocSnap.data();
+          messageObj.key = qDocSnap.id;
+          messageObj.author = this.getUserForID(messageObj.author);
+          chat.messages.push(messageObj);
+        });
+        notifyOnUpdate(); // call back to the subscriber
+    });
+  }
+
+  unsubscribeFromChat = (chat) => {
+    // don't really need 'chat' but could need it in the future
+    if (this.chatSnapshotUnsub) {
+      this.chatSnapshotUnsub();
+    }
+  }
+
+  addChatListener = (listener, chatID) => {
+    console.log('adding chat listener for', chatID);
+    this.subscribeToChat(chatID);
+    this.chatListeners.push({
+      listener: listener,
+      chatID: chatID
+    });
+  }
+
+  notifyChatListeners = (_chatID) => {
+    console.log('notifying chat listeners for id', _chatID);
+    this.chatListeners.forEach(({listener, chatID}) => {
+      if (chatID === _chatID) {
+        listener.onChatUpdate();
+      }
     });
   }
 
@@ -144,21 +189,21 @@ class DataModel {
     }
 
     // add this message to the collection. It'll exist now!
-    let messageDocRef = await messagesRef.add(fbMessageObject);
+    // let messageDocRef = await messagesRef.add(fbMessageObject);
+    messagesRef.add(fbMessageObject); // let onSnapshot give us the object
 
-    // update the local copy of the message with the correct key
-    message.key = messageDocRef.id;
+    // // update the local copy of the message with the correct key
+    // message.key = messageDocRef.id;
 
-    // get the local copy of the chat
-    let theChat = this.getChatForID(chatID);
-    console.log('in addChatMessge, theChat is', theChat);
-    // if this is the first message, create the messages array
-    if (!theChat.messages) {
-      theChat.messages = [];
-    }
-    // add this message to the array, then return it
-    theChat.messages.push(message);
-    return message;
+    // // get the local copy of the chat
+    // let theChat = this.getChatForID(chatID);
+    // // if this is the first message, create the messages array
+    // if (!theChat.messages) {
+    //   theChat.messages = [];
+    // }
+    // // add this message to the array, then return it
+    // theChat.messages.push(message);
+    // return message;
   }
 }
 

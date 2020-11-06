@@ -22,12 +22,21 @@ export class ChatScreen extends React.Component {
 
   componentDidMount = () => {
     this.props.navigation.setOptions({title: this.other.displayName});
-    this.loadMessages();
+    this.subscribeToChat();
   }
 
-  loadMessages = async() => {
+  componentWillUnmount = () => {
+    this.dataModel.unsubscribeFromChat(this.chat);
+  }
+
+  subscribeToChat = async() => {
     this.chat = await this.dataModel
       .getOrCreateChat(this.self, this.other);
+    this.dataModel.subscribeToChat(this.chat, this.onChatUpdate);
+  }
+
+  onChatUpdate = () => {
+    console.log('got chat update', this.chat);
     this.setState({messages: this.chat.messages});
   }
 
